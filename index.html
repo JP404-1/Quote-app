@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Quote</title>
+  <style>
+    :root {
+      --ink: #20212b;
+      --muted: #646877;
+      --paper: #fffaf0;
+      --panel: #ffffff;
+      --accent: #1f8a70;
+      --accent-dark: #156653;
+      --rose: #d95d6a;
+      --sky: #4e7bcf;
+      --shadow: 0 20px 55px rgba(35, 37, 51, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 18%, rgba(31, 138, 112, 0.18), transparent 28rem),
+        radial-gradient(circle at 78% 10%, rgba(217, 93, 106, 0.18), transparent 24rem),
+        linear-gradient(135deg, #fffaf0 0%, #eef6ff 52%, #f8f3ff 100%);
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    main {
+      width: min(100%, 960px);
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .quote-board,
+    .favorites {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(32, 33, 43, 0.1);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .quote-board {
+      min-height: 570px;
+      border-radius: 8px;
+      padding: clamp(28px, 5vw, 54px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quote-board::before {
+      content: "''";
+      position: absolute;
+      top: -58px;
+      right: 26px;
+      font-family: Georgia, serif;
+      font-size: 220px;
+      line-height: 1;
+      color: rgba(31, 138, 112, 0.09);
+      pointer-events: none;
+    }
+
+    .date-line {
+      color: var(--accent-dark);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    blockquote {
+      margin: 54px 0 34px;
+      max-width: 720px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.2rem, 7vw, 5.4rem);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    cite {
+      display: block;
+      margin-top: 22px;
+      color: var(--muted);
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-style: normal;
+      font-weight: 750;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 16px;
+      color: #ffffff;
+      background: var(--accent);
+      font: inherit;
+      font-weight: 760;
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(31, 138, 112, 0.22);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: #eef2f7;
+    }
+
+    button.secondary:hover {
+      background: #dfe6f0;
+      box-shadow: 0 10px 22px rgba(60, 73, 92, 0.14);
+    }
+
+    button.favorite {
+      background: var(--rose);
+    }
+
+    button.favorite:hover {
+      background: #b84452;
+      box-shadow: 0 10px 22px rgba(217, 93, 106, 0.22);
+    }
+
+    button:disabled:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .favorites {
+      border-radius: 8px;
+      padding: 24px;
+      min-height: 570px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .favorites.is-collapsed {
+      min-height: auto;
+    }
+
+    .favorites-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .favorites h2 {
+      margin: 0 0 4px;
+      font-size: 1.08rem;
+      letter-spacing: 0;
+    }
+
+    .favorites p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .toggle-button {
+      width: 44px;
+      min-width: 44px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: #eef2f7;
+    }
+
+    .toggle-button::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 8px solid currentColor;
+      transform: rotate(90deg);
+      transition: transform 160ms ease;
+    }
+
+    .toggle-button:hover {
+      background: #dfe6f0;
+      box-shadow: 0 10px 22px rgba(60, 73, 92, 0.14);
+    }
+
+    .favorites.is-collapsed .toggle-button::before {
+      transform: rotate(0deg);
+    }
+
+    .favorites-body {
+      display: grid;
+      gap: 18px;
+    }
+
+    .favorites.is-collapsed .favorites-body {
+      display: none;
+    }
+
+    .custom-quote-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .custom-quote-form textarea,
+    .custom-quote-form input {
+      width: 100%;
+      border: 1px solid rgba(32, 33, 43, 0.14);
+      border-radius: 8px;
+      padding: 12px 13px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.82);
+      font: inherit;
+      resize: vertical;
+    }
+
+    .custom-quote-form textarea:focus,
+    .custom-quote-form input:focus {
+      outline: 3px solid rgba(31, 138, 112, 0.2);
+      border-color: var(--accent);
+    }
+
+    .custom-quote-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-self: start;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .favorite-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      overflow: auto;
+    }
+
+    .favorite-list li {
+      border-left: 4px solid var(--sky);
+      background: #f7f9fd;
+      border-radius: 8px;
+      padding: 12px 13px;
+      line-height: 1.45;
+      cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .favorite-list li:hover,
+    .favorite-list li:focus-visible {
+      border-left-color: var(--accent);
+      background: #eef8f5;
+      box-shadow: 0 10px 22px rgba(31, 138, 112, 0.12);
+      outline: none;
+    }
+
+    .favorite-list li.is-selected {
+      border-left-color: var(--rose);
+      background: #fff1f3;
+      box-shadow: inset 0 0 0 1px rgba(217, 93, 106, 0.24);
+    }
+
+    .favorite-list li.empty {
+      cursor: default;
+    }
+
+    .favorite-list li.empty:hover {
+      border-left-color: var(--sky);
+      background: #f7f9fd;
+      box-shadow: none;
+    }
+
+    .favorite-list strong {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+      border: 1px dashed rgba(32, 33, 43, 0.2);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+      padding: 18px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(18px);
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #ffffff;
+      background: #20212b;
+      box-shadow: 0 16px 34px rgba(32, 33, 43, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding: 18px;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .quote-board,
+      .favorites {
+        min-height: auto;
+      }
+
+      blockquote {
+        margin-top: 44px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="quote-board" aria-labelledby="app-title">
+      <div>
+        <div class="date-line" id="today"></div>
+        <h1 id="app-title" hidden>Daily Quote</h1>
+        <blockquote>
+          <span id="quoteText"></span>
+          <cite id="quoteAuthor"></cite>
+        </blockquote>
+      </div>
+
+      <div class="actions" aria-label="Quote actions">
+        <button id="newQuote" type="button">New quote</button>
+        <button id="saveQuote" class="favorite" type="button">Save</button>
+        <button id="copyQuote" class="secondary" type="button">Copy</button>
+        <button id="shareQuote" class="secondary" type="button">Share</button>
+      </div>
+    </section>
+
+    <aside id="favoritesPanel" class="favorites" aria-labelledby="favorites-title">
+      <div class="favorites-header">
+        <div>
+          <h2 id="favorites-title">Saved quotes</h2>
+          <p>Favorites stay on this device.</p>
+        </div>
+        <button
+          id="favoritesToggle"
+          class="toggle-button"
+          type="button"
+          aria-expanded="true"
+          aria-controls="favoritesBody"
+          aria-label="Collapse saved quotes"
+        ></button>
+      </div>
+
+      <div id="favoritesBody" class="favorites-body">
+        <form id="customQuoteForm" class="custom-quote-form">
+          <label class="sr-only" for="customQuoteText">Quote</label>
+          <textarea id="customQuoteText" rows="3" placeholder="Quote" required></textarea>
+
+          <label class="sr-only" for="customQuoteAuthor">Author</label>
+          <input id="customQuoteAuthor" type="text" placeholder="Author" required />
+
+          <div class="custom-quote-actions">
+            <button type="submit">Add quote</button>
+            <button id="deleteFavoriteQuote" class="secondary" type="button" disabled>Delete quote</button>
+          </div>
+        </form>
+
+        <ul id="favoriteList" class="favorite-list"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const quotes = [
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+      { text: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Zig Ziglar" },
+      { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+      { text: "The future depends on what you do today.", author: "Mahatma Gandhi" },
+      { text: "Do one thing every day that scares you.", author: "Eleanor Roosevelt" },
+      { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+      { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
+      { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+      { text: "If opportunity doesn't knock, build a door.", author: "Milton Berle" },
+      { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+      { text: "Keep your eyes on the stars, and your feet on the ground.", author: "Theodore Roosevelt" },
+      { text: "If you're a lover, you gotta be a fighter... because if you don't fight for your love, what kind of love do you have?", author: "Keanu Reeves" },
+      { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" 
+        }
+    ];
+
+    const quoteText = document.querySelector("#quoteText");
+    const quoteAuthor = document.querySelector("#quoteAuthor");
+    const today = document.querySelector("#today");
+    const favoritesPanel = document.querySelector("#favoritesPanel");
+    const favoritesToggle = document.querySelector("#favoritesToggle");
+    const favoriteList = document.querySelector("#favoriteList");
+    const customQuoteForm = document.querySelector("#customQuoteForm");
+    const customQuoteText = document.querySelector("#customQuoteText");
+    const customQuoteAuthor = document.querySelector("#customQuoteAuthor");
+    const deleteFavoriteQuoteButton = document.querySelector("#deleteFavoriteQuote");
+    const newQuoteButton = document.querySelector("#newQuote");
+    const toast = document.querySelector("#toast");
+
+    let currentQuote = null;
+    let selectedFavoriteIndex = null;
+
+    const quoteApiUrl = "https://dummyjson.com/quotes/random";
+    const favoriteStorageKey = "dailyQuoteFavorites";
+    const customQuoteStorageKey = "dailyQuoteCustomQuotes";
+
+    async function fetchApiQuote() {
+      const response = await fetch(quoteApiUrl);
+
+      if (!response.ok) {
+        throw new Error(`Quote API failed with status ${response.status}`);
+      }
+
+      const quote = await response.json();
+
+      if (!quote.quote || !quote.author) {
+        throw new Error("Quote API returned an unexpected format");
+      }
+
+      return {
+        text: quote.quote,
+        author: quote.author
+      };
+    }
+
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      const diff = date - start + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+
+    function quoteToText(quote) {
+      return `"${quote.text}" - ${quote.author}`;
+    }
+
+    function normalizeQuotePart(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function quotesMatch(firstQuote, secondQuote) {
+      return (
+        normalizeQuotePart(firstQuote?.text) === normalizeQuotePart(secondQuote?.text)
+        && normalizeQuotePart(firstQuote?.author) === normalizeQuotePart(secondQuote?.author)
+      );
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function renderQuote(quote) {
+      currentQuote = quote;
+      quoteText.textContent = quote.text;
+      quoteAuthor.textContent = `- ${quote.author}`;
+    }
+
+    function loadCustomQuotes() {
+      try {
+        return JSON.parse(localStorage.getItem(customQuoteStorageKey)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCustomQuotes(customQuotes) {
+      localStorage.setItem(customQuoteStorageKey, JSON.stringify(customQuotes));
+    }
+
+    function getQuoteList() {
+      return [...quotes, ...loadCustomQuotes()];
+    }
+
+    function loadFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem(favoriteStorageKey)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveFavorites(favorites) {
+      localStorage.setItem(favoriteStorageKey, JSON.stringify(favorites));
+    }
+
+    function updateDeleteFavoriteButton() {
+      deleteFavoriteQuoteButton.disabled = selectedFavoriteIndex === null;
+    }
+
+    function renderFavorites() {
+      const favorites = loadFavorites();
+      favoriteList.innerHTML = "";
+
+      if (selectedFavoriteIndex !== null && selectedFavoriteIndex >= favorites.length) {
+        selectedFavoriteIndex = null;
+      }
+
+      if (!favorites.length) {
+        selectedFavoriteIndex = null;
+        updateDeleteFavoriteButton();
+
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "No saved quotes yet.";
+        favoriteList.append(empty);
+        return;
+      }
+
+      favorites.forEach((quote, index) => {
+        const item = document.createElement("li");
+        item.tabIndex = 0;
+        item.setAttribute("role", "button");
+        item.setAttribute("aria-pressed", String(index === selectedFavoriteIndex));
+        item.setAttribute("aria-label", `Select saved quote by ${quote.author}`);
+        item.classList.toggle("is-selected", index === selectedFavoriteIndex);
+        item.textContent = quote.text;
+
+        const author = document.createElement("strong");
+        author.textContent = quote.author;
+        item.append(author);
+
+        item.addEventListener("click", () => selectFavorite(index));
+        item.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectFavorite(index);
+          }
+        });
+
+        favoriteList.append(item);
+      });
+
+      updateDeleteFavoriteButton();
+    }
+
+    function selectFavorite(index) {
+      const favorites = loadFavorites();
+      const quote = favorites[index];
+
+      if (!quote) {
+        selectedFavoriteIndex = null;
+        renderFavorites();
+        return;
+      }
+
+      selectedFavoriteIndex = index;
+      renderQuote(quote);
+      renderFavorites();
+      showToast("Saved quote selected");
+    }
+
+    function selectDailyQuote() {
+      const date = new Date();
+      const day = getDayOfYear(date);
+      const quoteList = getQuoteList();
+
+      today.textContent = date.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric"
+      });
+      renderQuote(quoteList[day % quoteList.length]);
+    }
+
+    function selectRandomQuote() {
+      const quoteList = getQuoteList();
+      const options = quoteList.filter((quote) => quote.text !== currentQuote.text);
+      const next = options.length
+        ? options[Math.floor(Math.random() * options.length)]
+        : quoteList[0];
+      renderQuote(next);
+    }
+
+    async function loadApiQuote(options = {}) {
+      const { showSuccess = true, fallbackToLocal = true } = options;
+
+      newQuoteButton.disabled = true;
+      newQuoteButton.textContent = "Loading...";
+
+      try {
+        const quote = await fetchApiQuote();
+        renderQuote(quote);
+        if (showSuccess) {
+          showToast("New quote loaded");
+        }
+      } catch (error) {
+        console.warn("Quote API failed, using a local quote.", error);
+        if (fallbackToLocal) {
+          selectRandomQuote();
+        }
+        showToast("API unavailable, using a local quote");
+      } finally {
+        newQuoteButton.disabled = false;
+        newQuoteButton.textContent = "New quote";
+      }
+    }
+
+    newQuoteButton.addEventListener("click", () => loadApiQuote());
+
+    favoritesToggle.addEventListener("click", () => {
+      const isCollapsed = favoritesPanel.classList.toggle("is-collapsed");
+      favoritesToggle.setAttribute("aria-expanded", String(!isCollapsed));
+      favoritesToggle.setAttribute(
+        "aria-label",
+        isCollapsed ? "Expand saved quotes" : "Collapse saved quotes"
+      );
+    });
+
+    customQuoteForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const quote = {
+        text: customQuoteText.value.trim(),
+        author: customQuoteAuthor.value.trim()
+      };
+
+      if (!quote.text || !quote.author) {
+        showToast("Add a quote and author");
+        return;
+      }
+
+      const customQuotes = loadCustomQuotes();
+      const exists = getQuoteList().some((item) => quotesMatch(item, quote));
+
+      if (exists) {
+        showToast("Quote already in list");
+        return;
+      }
+
+      saveCustomQuotes([quote, ...customQuotes]);
+      customQuoteForm.reset();
+      renderQuote(quote);
+      showToast("Quote added");
+    });
+
+    deleteFavoriteQuoteButton.addEventListener("click", () => {
+      const favorites = loadFavorites();
+
+      if (selectedFavoriteIndex === null || !favorites[selectedFavoriteIndex]) {
+        showToast("Select a saved quote first");
+        return;
+      }
+
+      favorites.splice(selectedFavoriteIndex, 1);
+      selectedFavoriteIndex = null;
+      saveFavorites(favorites);
+      renderFavorites();
+      showToast("Saved quote deleted");
+    });
+
+    document.querySelector("#saveQuote").addEventListener("click", () => {
+      const favorites = loadFavorites();
+      const exists = favorites.some((quote) => quote.text === currentQuote.text);
+
+      if (exists) {
+        showToast("Already saved");
+        return;
+      }
+
+      saveFavorites([currentQuote, ...favorites].slice(0, 8));
+      selectedFavoriteIndex = 0;
+      renderFavorites();
+      showToast("Saved");
+    });
+
+    document.querySelector("#copyQuote").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(quoteToText(currentQuote));
+      showToast("Copied");
+    });
+
+    document.querySelector("#shareQuote").addEventListener("click", async () => {
+      const text = quoteToText(currentQuote);
+
+      if (navigator.share) {
+        await navigator.share({ title: "Daily Quote", text });
+      } else {
+        await navigator.clipboard.writeText(text);
+        showToast("Copied for sharing");
+      }
+    });
+
+    selectDailyQuote();
+    loadApiQuote({ showSuccess: false, fallbackToLocal: false });
+    renderFavorites();
+  </script>
+</body>
+</html>
